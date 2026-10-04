@@ -5,6 +5,7 @@ const REGIONS = {
   in: 'https://openapi.tuyain.com',
 };
 const SWITCH_CODES = new Set(['switch', 'switch_1', 'switch_led']);
+const COLOR_CODES = new Set(['colour_data', 'colour_data_v2']);
 let cachedToken;
 
 export default {
@@ -34,11 +35,18 @@ export default {
       if (request.method === 'POST' && commandMatch) {
         const deviceId = decodeURIComponent(commandMatch[1]);
         const command = await request.json();
-        if (!SWITCH_CODES.has(command.code) || typeof command.value !== 'boolean') {
+        if (SWITCH_CODES.has(command.code) && typeof command.value === 'boolean') {
+          const result = await tuyaRequest(env, 'POST', `/v1.0/iot-03/devices/${encodeURIComponent(deviceId)}/commands`, {
+            commands: [{ code: command.code, value: command.value }],
+          });
+          return json({ success: true, result }, 200, corsHeaders);
+        }
+        const colorValue = validateColorCommand(command.code, command.value);
+        if (colorValue === null) {
           return json({ success: false, error: 'Ongeldig commando.' }, 400, corsHeaders);
         }
         const result = await tuyaRequest(env, 'POST', `/v1.0/iot-03/devices/${encodeURIComponent(deviceId)}/commands`, {
-          commands: [{ code: command.code, value: command.value }],
+          commands: [{ code: command.code, value: colorValue }],
         });
         return json({ success: true, result }, 200, corsHeaders);
       }
@@ -73,6 +81,7 @@ function json(body, status, headers) {
 function toDashboardDevice(device) {
   const status = Array.isArray(device.status) ? device.status : [];
   const switchCode = status.find((item) => SWITCH_CODES.has(item.code))?.code || null;
+  const colorStatus = status.find((item) => COLOR_CODES.has(item.code));
   const deviceInfo = `${device.category || ''} ${device.name || ''}`;
   const category = /light|lamp|dj/i.test(deviceInfo)
     ? 'light'
@@ -87,7 +96,52 @@ function toDashboardDevice(device) {
     online: Boolean(device.online),
     on: Boolean(status.find((item) => item.code === switchCode)?.value),
     switchCode,
+    colorCode: colorStatus?.code || null,
+    color: colorStatus ? colorToHex(colorStatus.value) : null,
   };
+}
+
+function validateColorCommand(code, value) {
+  if (!COLOR_CODES.has(code) || typeof value !== 'string') return null;
+  if (code === 'colour_data_v2') {
+    if (!/^[\da-f]{12}$/i.test(value)) return null;
+    const [hue, saturation, brightness] = [0, 4, 8].map((offset) => parseInt(value.slice(offset, offset + 4), 16));
+    return hue <= 360 && saturation <= 1000 && brightness <= 1000 ? value : null;
+  }
+  try {
+    const color = JSON.parse(value);
+    return Number.isInteger(color.h) && color.h >= 0 && color.h <= 360
+      && Number.isInteger(color.s) && color.s >= 0 && color.s <= 1000
+      && Number.isInteger(color.v) && color.v >= 0 && color.v <= 1000
+      ? value
+      : null;
+  } catch {
+    return null;
+  }
+}
+
+function colorToHex(value) {
+  try {
+    const color = typeof value === 'string' && value.trimStart().startsWith('{')
+      ? JSON.parse(value)
+      : { h: parseInt(value.slice(0, 4), 16), s: parseInt(value.slice(4, 8), 16), v: parseInt(value.slice(8, 12), 16) };
+    const hue = Number(color.h);
+    const saturation = Number(color.s) / 1000;
+    const brightness = Number(color.v) / 1000;
+    if (![hue, saturation, brightness].every(Number.isFinite)) return null;
+    const chroma = brightness * saturation;
+    const second = chroma * (1 - Math.abs((hue / 60) % 2 - 1));
+    const offset = brightness - chroma;
+    const channels = hue < 60 ? [chroma, second, 0]
+      : hue < 120 ? [second, chroma, 0]
+        : hue < 180 ? [0, chroma, second]
+          : hue < 240 ? [0, second, chroma]
+            : hue < 300 ? [second, 0, chroma]
+              : [chroma, 0, second];
+    return `#${channels.map((channel) => Math.round((channel + offset) * 255).toString(16).padStart(2, '0')).join('')}`;
+  } catch {
+    return null;
+  }
 }
 
 async function tuyaRequest(env, method, path, body) {

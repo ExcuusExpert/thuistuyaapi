@@ -10,6 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
     <script src="app.js" defer></script>
+    <script src="spotify.js" defer></script>
   </head>
   <body>
     <svg class="icon-library" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
@@ -22,33 +23,48 @@
       <symbol id="i-thermo" viewBox="0 0 24 24"><path d="M14 14.76V5a3 3 0 0 0-6 0v9.76a5 5 0 1 0 6 0Z"/><path d="M11 11v7"/></symbol>
       <symbol id="i-wifi" viewBox="0 0 24 24"><path d="M5 9a11 11 0 0 1 14 0M8 12a6.5 6.5 0 0 1 8 0m-5 4h.01"/></symbol>
       <symbol id="i-close" viewBox="0 0 24 24"><path d="m18 6-12 12M6 6l12 12"/></symbol>
+      <symbol id="i-expand" viewBox="0 0 24 24"><path d="M8 3H5a2 2 0 0 0-2 2v3m13-5h3a2 2 0 0 1 2 2v3M3 16v3a2 2 0 0 0 2 2h3m13-5v3a2 2 0 0 1-2 2h-3"/></symbol>
+      <symbol id="i-previous" viewBox="0 0 24 24"><path d="M19 20 9 12l10-8v16ZM5 19V5"/></symbol>
+      <symbol id="i-play" viewBox="0 0 24 24"><path d="m8 5 12 7-12 7V5Z"/></symbol>
+      <symbol id="i-pause" viewBox="0 0 24 24"><path d="M8 5v14M16 5v14"/></symbol>
+      <symbol id="i-next" viewBox="0 0 24 24"><path d="m5 4 10 8-10 8V4Zm14 1v14"/></symbol>
+      <symbol id="i-spotify" viewBox="0 0 24 24"><path d="M3 8c5-2 12-1.5 17 1m-15 3c4-1.5 9-1 13 .8m-11 3c3-1 6-.6 9 .6"/></symbol>
     </svg>
     <div class="app-shell">
       <aside class="sidebar">
         <a class="brand" href="#home" aria-label="Thuis dashboard"><span class="brand-mark"><svg><use href="#i-home"/></svg></span><span class="brand-name">thuis<span>.</span></span></a>
         <div class="side-label">OVERZICHT</div>
         <nav class="side-nav" aria-label="Hoofdnavigatie">
-          <a class="nav-item active" href="#home"><svg><use href="#i-home"/></svg><span>Mijn huis</span><span class="nav-count" id="nav-device-count">4</span></a>
-          <button class="nav-item" data-filter="light"><svg><use href="#i-light"/></svg><span>Lampen</span></button>
-          <button class="nav-item" data-filter="plug"><svg><use href="#i-plug"/></svg><span>Stekkers</span></button>
+          <a class="nav-item active" href="#home"><svg><use href="#i-home"/></svg><span>Alle apparaten</span><span class="nav-count" id="nav-device-count">4</span></a>
         </nav>
         <div class="sidebar-bottom">
           <div class="side-label">VERBINDING</div>
           <div class="connection-card"><span class="connection-dot" id="connection-dot"></span><div><strong id="connection-label">Demomodus</strong><small id="connection-detail">Alleen lokaal</small></div><svg class="connection-wifi"><use href="#i-wifi"/></svg></div>
-          <button class="nav-item settings-link" id="open-settings"><svg><use href="#i-settings"/></svg><span>Instellingen</span></button>
+          <button class="nav-item settings-link" id="open-settings-side"><svg><use href="#i-settings"/></svg><span>Instellingen</span></button>
           <div class="sidebar-foot">THUIS, OP JOUW MANIER <span>v0.1</span></div>
         </div>
       </aside>
       <main class="main-content" id="home">
-        <header class="topbar"><div class="breadcrumb"><span>WONING</span><span class="breadcrumb-slash">/</span><strong>Overzicht</strong></div><div class="topbar-right"><span class="today" id="today"></span><span class="avatar">H</span></div></header>
+        <header class="topbar"><div class="breadcrumb"><span>THUIS</span><span class="breadcrumb-slash">/</span><strong>Dashboard</strong></div><div class="topbar-right"><div class="clock-readout"><strong id="clock">--:--</strong><span id="today"></span></div><button class="icon-button topbar-action" id="kiosk-button" type="button" aria-label="Volledig scherm" title="Volledig scherm"><svg><use href="#i-expand"/></svg></button><button class="icon-button topbar-action mobile-settings" id="open-settings" type="button" aria-label="Instellingen" title="Instellingen"><svg><use href="#i-settings"/></svg></button><span class="avatar">H</span></div></header>
         <section class="welcome-row">
-          <div><div class="eyebrow"><span class="eyebrow-line"></span> JOUW THUIS IN EEN OOGOPSLAG</div><h1>Alles op <span>z'n plek.</span></h1><p class="welcome-copy" id="welcome-copy">Je huis is klaar voor vandaag.</p></div>
-          <div class="weather-pill"><span class="weather-sun"><svg><use href="#i-sun"/></svg></span><span><strong>Thuis</strong><small>Fijn dat je er bent</small></span><span class="weather-divider"></span><strong class="weather-temp">●</strong></div>
+          <div><div class="eyebrow"><span class="eyebrow-line"></span><span id="greeting">THUIS, OP JOUW RITME</span></div><h1>Welkom <span>thuis.</span></h1><p class="welcome-copy" id="welcome-copy">Je huis is klaar voor vandaag.</p></div>
+          <div class="home-status-pill" id="home-status-pill"><span class="tiny-dot green-dot"></span><span id="home-status">Alles rustig</span><svg><use href="#i-wifi"/></svg></div>
         </section>
         <section class="summary-grid" aria-label="Huisstatus">
           <article class="summary-card summary-dark"><div class="summary-top"><span>APPARATEN</span><span class="summary-icon"><svg><use href="#i-home"/></svg></span></div><div class="summary-value"><strong id="total-count">4</strong><span>gekoppeld</span></div><div class="summary-foot"><span class="tiny-dot light-dot"></span><span id="online-count">4 apparaten online</span></div></article>
           <article class="summary-card summary-lime"><div class="summary-top"><span>INGESCHAKELD</span><span class="summary-icon"><svg><use href="#i-light"/></svg></span></div><div class="summary-value"><strong id="active-count">2</strong><span>actief</span></div><div class="summary-foot"><span class="tiny-dot dark-dot"></span><span>Op dit moment</span></div></article>
-          <article class="summary-card summary-paper"><div class="summary-top"><span>HUISSTATUS</span><span class="status-tag"><span class="tiny-dot green-dot"></span><span id="home-status">Alles rustig</span></span></div><div class="summary-status">Precies zoals<br>het hoort<span class="status-spark">✳</span></div></article>
+          <article class="summary-card summary-paper"><div class="summary-top"><span>HUISSTATUS</span><span class="status-tag"><span class="tiny-dot green-dot"></span><span id="home-status-summary">Alles rustig</span></span></div><div class="summary-status">Precies zoals<br>het hoort<span class="status-spark">✳</span></div></article>
+        </section>
+        <section class="spotify-section" aria-label="Spotify-speler">
+          <div class="spotify-heading"><div><div class="eyebrow section-eyebrow">MUZIEK</div><h2>Nu aan het spelen</h2></div><span class="spotify-status" id="spotify-status"><span class="tiny-dot"></span>Niet verbonden</span></div>
+          <article class="spotify-player" id="spotify-player">
+            <div class="spotify-cover"><img id="spotify-cover" alt="" hidden><span id="spotify-cover-placeholder"><svg><use href="#i-spotify"/></svg></span></div>
+            <div class="spotify-content">
+              <div class="spotify-track"><strong id="spotify-track-title">Spotify niet gekoppeld</strong><span id="spotify-track-artist">Koppel Spotify via instellingen</span><small id="spotify-device-label">Je muziek blijft spelen op je Spotify-apparaat</small></div>
+              <div class="spotify-progress"><span id="spotify-position">0:00</span><input id="spotify-seek" type="range" min="0" max="1000" value="0" aria-label="Positie in nummer" disabled><span id="spotify-duration">0:00</span></div>
+              <div class="spotify-controls"><button type="button" id="spotify-previous" aria-label="Vorig nummer" title="Vorig nummer" disabled><svg><use href="#i-previous"/></svg></button><button type="button" id="spotify-play" class="spotify-play" aria-label="Afspelen" title="Afspelen" disabled><svg><use href="#i-play"/></svg></button><button type="button" id="spotify-next" aria-label="Volgend nummer" title="Volgend nummer" disabled><svg><use href="#i-next"/></svg></button><button type="button" class="spotify-connect" id="spotify-connect">Spotify koppelen</button></div>
+            </div>
+          </article>
         </section>
         <section class="devices-section">
           <div class="section-heading"><div><div class="eyebrow section-eyebrow">BEDIENING</div><h2>Jouw apparaten <span class="heading-count" id="heading-count">04</span></h2></div>
@@ -62,8 +78,8 @@
     </div>
     <dialog class="settings-dialog" id="settings-dialog" aria-labelledby="settings-title">
       <form method="dialog" class="dialog-close-row"><button class="icon-button" aria-label="Sluiten"><svg><use href="#i-close"/></svg></button></form>
-      <div class="dialog-kicker">VERBINDING</div><h2 id="settings-title">Koppel je <span>Tuya-huis.</span></h2><p class="dialog-copy">Vul de URL van je beveiligde Tuya-proxy in. Je toegangstoken wordt alleen in deze browser bewaard.</p>
-      <form id="settings-form" class="settings-form"><label for="api-url">Worker URL</label><input id="api-url" type="url" placeholder="https://jouw-worker.workers.dev" autocomplete="url"><label for="api-token">Dashboard-token</label><input id="api-token" type="password" placeholder="Token uit Cloudflare" autocomplete="off"><div class="settings-error" id="settings-error" role="alert" hidden></div><div class="dialog-actions"><button type="button" class="text-button" id="disconnect-button">Verbinding wissen</button><button type="submit" class="primary-button">Verbinden <span>↗</span></button></div></form>
+      <div class="dialog-kicker">VERBINDINGEN</div><h2 id="settings-title">Jouw huis, <span>gekoppeld.</span></h2><p class="dialog-copy">Koppel Tuya voor je apparaten en Spotify voor muziekbediening.</p>
+      <form id="settings-form" class="settings-form"><div class="settings-group-title">TUYA</div><label for="api-url">Worker URL</label><input id="api-url" type="url" placeholder="https://jouw-worker.workers.dev" autocomplete="url"><label for="api-token">Dashboard-token</label><input id="api-token" type="password" placeholder="Token uit Cloudflare" autocomplete="off"><div class="settings-group-title spotify-settings-title">SPOTIFY</div><label for="spotify-client-id">Spotify Client ID</label><input id="spotify-client-id" type="text" placeholder="Client ID uit Spotify Developer Dashboard" autocomplete="off"><small class="redirect-help">Voeg deze redirect-URL toe in je Spotify-app: <code id="spotify-redirect-uri"></code></small><div class="settings-error" id="settings-error" role="alert" hidden></div><div class="dialog-actions"><button type="button" class="text-button" id="disconnect-button">Tuya wissen</button><button type="button" class="text-button" id="spotify-disconnect">Spotify wissen</button><button type="submit" class="primary-button">Opslaan <span>↗</span></button></div></form>
     </dialog>
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
   </body>
