@@ -8,6 +8,14 @@ const SWITCH_CODES = new Set(['switch', 'switch_1', 'switch_2', 'switch_3', 'swi
 const COLOR_CODES = new Set(['colour_data', 'colour_data_v2']);
 let cachedToken;
 
+function isSwitchCode(code) {
+  return typeof code === 'string' && (SWITCH_CODES.has(code) || /^(switch|power|light|led)(_|$)/i.test(code));
+}
+
+function isOnValue(value) {
+  return value === true || value === 1 || value === 'true' || value === '1';
+}
+
 export default {
   async fetch(request, env) {
     const origin = request.headers.get('Origin');
@@ -37,7 +45,7 @@ export default {
       if (request.method === 'POST' && commandMatch) {
         const deviceId = decodeURIComponent(commandMatch[1]);
         const command = await request.json();
-        if (SWITCH_CODES.has(command.code) && typeof command.value === 'boolean') {
+        if (isSwitchCode(command.code) && typeof command.value === 'boolean') {
           const result = await tuyaRequest(env, 'POST', `/v1.0/iot-03/devices/${encodeURIComponent(deviceId)}/commands`, {
             commands: [{ code: command.code, value: command.value }],
           });
@@ -83,9 +91,12 @@ function json(body, status, headers) {
 function toDashboardDevice(device) {
   const status = Array.isArray(device.status) ? device.status : [];
   const functions = Array.isArray(device.functions) ? device.functions : [];
-  const switchCode = status.find((item) => SWITCH_CODES.has(item.code))?.code
-    || functions.find((item) => SWITCH_CODES.has(item.code))?.code
+  const switchStatus = status.find((item) => isSwitchCode(item.code));
+  const switchFunction = functions.find((item) => isSwitchCode(item.code));
+  const switchCode = switchStatus?.code
+    || switchFunction?.code
     || null;
+  const online = device.online !== false && device.is_online !== false;
   const colorStatus = status.find((item) => COLOR_CODES.has(item.code));
   const colorFunction = functions.find((item) => COLOR_CODES.has(item.code));
   const deviceInfo = `${device.category || ''} ${device.name || ''}`;
@@ -99,8 +110,9 @@ function toDashboardDevice(device) {
     name: device.name || 'Tuya-apparaat',
     room: device.room_name || device.area_name || (category === 'light' ? 'Lamp' : category === 'sensor' ? 'Sensor' : 'Stekker'),
     category,
-    online: Boolean(device.online),
-    on: device.online === false ? false : Boolean(status.find((item) => item.code === switchCode)?.value),
+    online,
+    on: online && isOnValue(switchStatus?.value ?? device.on ?? device.is_on),
+    statusKnown: Boolean(switchStatus || typeof device.on === 'boolean' || typeof device.is_on === 'boolean'),
     switchCode,
     colorCode: colorStatus?.code || colorFunction?.code || null,
     color: colorStatus ? colorToHex(colorStatus.value) : null,
@@ -111,7 +123,7 @@ async function enrichDevice(env, device) {
   const status = Array.isArray(device.status) ? device.status : [];
   const functions = Array.isArray(device.functions) ? device.functions : [];
   const deviceId = encodeURIComponent(device.id);
-  const hasSwitch = status.some((item) => SWITCH_CODES.has(item.code)) || functions.some((item) => SWITCH_CODES.has(item.code));
+  const hasSwitch = status.some((item) => isSwitchCode(item.code)) || functions.some((item) => isSwitchCode(item.code));
   const hasColor = status.some((item) => COLOR_CODES.has(item.code)) || functions.some((item) => COLOR_CODES.has(item.code));
   const isLight = /light|lamp|dj/i.test(`${device.category || ''} ${device.name || ''}`);
   let discoveredFunctions = functions;
@@ -123,7 +135,7 @@ async function enrichDevice(env, device) {
     if (Array.isArray(list)) discoveredFunctions = list;
   }
 
-  const needsStatus = !discoveredStatus.some((item) => SWITCH_CODES.has(item.code))
+  const needsStatus = !discoveredStatus.some((item) => isSwitchCode(item.code))
     || (isLight && !discoveredStatus.some((item) => COLOR_CODES.has(item.code)));
   if (needsStatus) {
     const result = await tuyaRequest(env, 'GET', `/v1.0/iot-03/devices/${deviceId}/status`).catch(() => null);

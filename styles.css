@@ -146,8 +146,11 @@ button, input { font: inherit; } button { color: inherit; } svg { width: 20px; h
 }
 
 .control-layout { display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); align-items: start; gap: 24px; padding-top: 28px; }
+.mobile-view-nav { display: none; }
 .control-layout .spotify-section, .control-layout .devices-section { min-width: 0; padding-top: 0; }
 .spotify-player { display: block; min-height: 0; padding: 7px; border-color: #314a42; background: var(--forest); }
+.spotify-player[hidden] { display: none; }
+.spotify-collapse { flex: 0 0 auto; color: #6c7b70; }
 .spotify-player iframe { display: block; width: 100%; border: 0; border-radius: 4px; background: #121212; }
 .spotify-player iframe[hidden] { display: none; }
 .spotify-empty { display: grid; min-height: 184px; grid-template-columns: 44px minmax(0, 1fr); grid-template-rows: 1fr auto; align-items: center; column-gap: 13px; padding: 18px; border-radius: 4px; background: #1d3530; color: white; }
@@ -172,8 +175,14 @@ button, input { font: inherit; } button { color: inherit; } svg { width: 20px; h
 .kiosk-mode .control-layout .spotify-section, .kiosk-mode .control-layout .devices-section { grid-area: auto; }
 
 @media (max-width: 760px) {
-	.control-layout { order: 2; grid-template-columns: minmax(0, 1fr); gap: 24px; padding-top: 22px; }
-	.control-layout .spotify-section, .control-layout .devices-section { order: initial; }
+	.mobile-view-nav { display: flex; order: 4; gap: 3px; padding: 3px; border: 1px solid #e0e5dc; border-radius: 6px; background: #fbfcf9; }
+	.mobile-view-tab { min-height: 36px; flex: 1; border: 0; border-radius: 4px; background: transparent; color: #78837a; cursor: pointer; font-size: 11px; }
+	.mobile-view-tab.is-selected { background: var(--forest); color: white; }
+	.control-layout { order: 5; display: flex; grid-template-columns: none; gap: 0; overflow-x: auto; padding-top: 14px; scroll-snap-type: x mandatory; scrollbar-width: none; overscroll-behavior-x: contain; }
+	.control-layout::-webkit-scrollbar { display: none; }
+	.control-layout > [data-mobile-view] { width: 100%; min-width: 100%; flex: 0 0 100%; scroll-snap-align: start; }
+	.control-layout .devices-section { order: 0; }
+	.control-layout .spotify-section { order: 1; }
 	.summary-grid { order: 3; }
 	.kiosk-mode .main-content { grid-template-areas: none; grid-template-columns: 1fr; }
 	.kiosk-mode .control-layout { grid-area: auto; }
@@ -183,4 +192,28 @@ button, input { font: inherit; } button { color: inherit; } svg { width: 20px; h
 	.spotify-empty { min-height: 158px; padding: 14px; }
 	.spotify-empty strong { font-size: 14px; }
 	.visibility-button { width: 32px; height: 32px; }
+}
+
+@media (orientation: landscape) and (max-height: 600px) and (min-width: 761px) {
+	.sidebar { display: none; }
+	.main-content { display: flex; flex-direction: column; margin-left: 0; padding: 0 22px; }
+	.topbar { order: 0; height: 48px; }
+	.welcome-row { order: 1; padding: 7px 0 9px; }
+	.welcome-row h1 { margin-top: 4px; font-size: 23px; }
+	.welcome-copy { margin-top: 3px; font-size: 10px; }
+	.summary-grid { display: none; }
+	.mobile-view-nav { display: flex; order: 2; gap: 3px; padding: 2px; border: 1px solid #e0e5dc; border-radius: 5px; background: #fbfcf9; }
+	.mobile-view-tab { min-height: 30px; flex: 1; border: 0; border-radius: 3px; background: transparent; color: #78837a; cursor: pointer; font-size: 10px; }
+	.mobile-view-tab.is-selected { background: var(--forest); color: white; }
+	.control-layout { display: flex; min-height: 0; flex: 1; grid-template-columns: none; gap: 0; order: 3; overflow-x: auto; padding-top: 8px; scroll-snap-type: x mandatory; scrollbar-width: none; overscroll-behavior-x: contain; }
+	.control-layout::-webkit-scrollbar { display: none; }
+	.control-layout > [data-mobile-view] { width: 100%; min-width: 100%; max-height: calc(100vh - 142px); max-height: calc(100dvh - 142px); flex: 0 0 100%; overflow-y: auto; scroll-snap-align: start; overscroll-behavior-y: contain; }
+	.control-layout .devices-section { order: 0; }
+	.control-layout .spotify-section { order: 1; }
+	.control-layout .spotify-heading { margin-bottom: 7px; }
+	.control-layout .spotify-player { max-width: 560px; }
+	.device-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+	.device-card { min-height: 78px; padding: 9px; }
+	.device-icon { width: 34px; height: 34px; }
+	.page-footer { display: none; }
 }

@@ -1,6 +1,18 @@
 const SPOTIFY_LINK_KEY = 'thuis-spotify-embed-link';
+const SPOTIFY_COLLAPSED_KEY = 'thuis-spotify-collapsed';
 const spotifyEmbed = document.querySelector('#spotify-embed');
 const spotifyEmpty = document.querySelector('#spotify-empty');
+const spotifyPlayer = document.querySelector('#spotify-player');
+const spotifyCollapseButton = document.querySelector('#spotify-collapse');
+
+function setCollapsed(collapsed) {
+  spotifyPlayer.hidden = collapsed;
+  spotifyCollapseButton.setAttribute('aria-expanded', String(!collapsed));
+  spotifyCollapseButton.setAttribute('aria-label', collapsed ? 'Spotify uitklappen' : 'Spotify inklappen');
+  spotifyCollapseButton.title = collapsed ? 'Spotify uitklappen' : 'Spotify inklappen';
+  spotifyCollapseButton.querySelector('use').setAttribute('href', collapsed ? '#i-chevron-down' : '#i-chevron-up');
+  localStorage.setItem(SPOTIFY_COLLAPSED_KEY, String(collapsed));
+}
 
 function parseSpotifyLink(value) {
   const input = String(value || '').trim();
@@ -57,4 +69,6 @@ window.spotifyEmbedIntegration = {
 };
 
 document.querySelector('#spotify-embed-edit').addEventListener('click', () => document.querySelector('#open-settings').click());
+spotifyCollapseButton.addEventListener('click', () => setCollapsed(!spotifyCollapseButton.matches('[aria-expanded="true"]')));
+setCollapsed(localStorage.getItem(SPOTIFY_COLLAPSED_KEY) === 'true');
 renderSpotifyEmbed();

@@ -30,7 +30,7 @@ function render() {
   });
   grid.innerHTML = visible.map((device, index) => {
     const isOn = device.online !== false && Boolean(device.on);
-    const statusText = device.online === false ? 'Niet bereikbaar' : isOn ? 'Ingeschakeld' : 'Uitgeschakeld';
+    const statusText = device.online === false ? 'Niet bereikbaar' : device.statusKnown === false && !device.switchCode ? 'Status onbekend' : isOn ? 'Ingeschakeld' : 'Uitgeschakeld';
     const controllable = Boolean(device.switchCode);
     const disabled = device.online === false || state.busy.has(device.id);
     const colorControl = device.colorCode ? `<label class="color-control" style="--device-color:${escapeHtml(device.color || '#ffffff')}" title="Kleur aanpassen"><input type="color" class="device-color" data-color-device="${escapeHtml(device.id)}" value="${escapeHtml(device.color || '#ffffff')}" aria-label="Kleur van ${escapeHtml(device.name)}" ${disabled ? 'disabled' : ''}><span></span></label>` : '';
@@ -185,6 +185,37 @@ $('#kiosk-button').addEventListener('click', async () => {
   } else await document.exitFullscreen();
 });
 document.addEventListener('fullscreenchange', () => document.body.classList.toggle('kiosk-mode', Boolean(document.fullscreenElement)));
+const controlLayout = $('.control-layout');
+const mobileViewTabs = [...document.querySelectorAll('.mobile-view-tab')];
+const mobileViewPages = [...document.querySelectorAll('[data-mobile-view]')];
+let mobileViewFrame;
+
+function selectMobileView(viewName, scrollToView = false) {
+  const target = mobileViewPages.find((page) => page.dataset.mobileView === viewName);
+  if (!target) return;
+  mobileViewTabs.forEach((tab) => {
+    const selected = tab.dataset.mobileViewTarget === viewName;
+    tab.classList.toggle('is-selected', selected);
+    tab.setAttribute('aria-selected', String(selected));
+  });
+  if (scrollToView) {
+    const left = controlLayout.scrollLeft + target.getBoundingClientRect().left - controlLayout.getBoundingClientRect().left;
+    controlLayout.scrollTo({ left, behavior: 'smooth' });
+  }
+}
+
+mobileViewTabs.forEach((tab) => tab.addEventListener('click', () => selectMobileView(tab.dataset.mobileViewTarget, true)));
+controlLayout.addEventListener('scroll', () => {
+  window.cancelAnimationFrame(mobileViewFrame);
+  mobileViewFrame = window.requestAnimationFrame(() => {
+    const containerLeft = controlLayout.getBoundingClientRect().left;
+    const activePage = mobileViewPages.reduce((nearest, page) => {
+      const distance = Math.abs(page.getBoundingClientRect().left - containerLeft);
+      return distance < nearest.distance ? { name: page.dataset.mobileView, distance } : nearest;
+    }, { name: 'devices', distance: Infinity });
+    selectMobileView(activePage.name);
+  });
+});
 setDate();
 window.setInterval(setDate, 15_000);
 loadDevices();
