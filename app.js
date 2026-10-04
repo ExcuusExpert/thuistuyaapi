@@ -205,6 +205,20 @@ function selectMobileView(viewName, scrollToView = false) {
 }
 
 mobileViewTabs.forEach((tab) => tab.addEventListener('click', () => selectMobileView(tab.dataset.mobileViewTarget, true)));
+let touchStart;
+controlLayout.addEventListener('touchstart', (event) => {
+  const touch = event.changedTouches[0];
+  touchStart = { x: touch.clientX, y: touch.clientY };
+}, { passive: true });
+controlLayout.addEventListener('touchend', (event) => {
+  if (!touchStart) return;
+  const touch = event.changedTouches[0];
+  const deltaX = touch.clientX - touchStart.x;
+  const deltaY = touch.clientY - touchStart.y;
+  touchStart = null;
+  if (Math.abs(deltaX) < 45 || Math.abs(deltaX) < Math.abs(deltaY) * 1.2) return;
+  selectMobileView(deltaX > 0 ? 'spotify' : 'devices', true);
+}, { passive: true });
 controlLayout.addEventListener('scroll', () => {
   window.cancelAnimationFrame(mobileViewFrame);
   mobileViewFrame = window.requestAnimationFrame(() => {
