@@ -8,11 +8,11 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css?v=6">
-    <script src="app.js?v=7" defer></script>
+    <link rel="stylesheet" href="styles.css?v=7">
+    <script src="app.js?v=8" defer></script>
     <script src="spotify-embed.js?v=1" defer></script>
   </head>
-  <body>
+  <body class="clock-mode">
     <svg class="icon-library" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
       <symbol id="i-home" viewBox="0 0 24 24"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/><path d="M8 21v-7h8v7"/></symbol>
       <symbol id="i-light" viewBox="0 0 24 24"><path d="M9 18h6m-5 4h4m-2-20a7 7 0 0 0-4 12.75c.63.44 1 1.1 1 1.75h6c0-.65.37-1.31 1-1.75A7 7 0 0 0 12 2Z"/></symbol>
@@ -34,7 +34,12 @@
       <symbol id="i-chevron-up" viewBox="0 0 24 24"><path d="m6 14 6-6 6 6"/></symbol>
       <symbol id="i-chevron-down" viewBox="0 0 24 24"><path d="m6 10 6 6 6-6"/></symbol>
     </svg>
-    <div class="app-shell">
+    <section class="clock-screen" id="clock-screen" aria-label="Klok en huisstatus">
+      <div class="clock-screen-top"><span class="clock-brand">thuis<span>.</span></span><span class="clock-live"><i></i> THUIS</span></div>
+      <div class="clock-screen-center"><span class="clock-greeting" id="screen-greeting">GOEDEMORGEN</span><time id="screen-time">--:--</time><span class="clock-date" id="screen-date">maandag 1 januari</span></div>
+      <div class="clock-screen-bottom"><span id="screen-home-status">Alles rustig</span><span id="screen-device-summary">Je huis is klaar voor vandaag.</span></div>
+    </section>
+    <div class="app-shell" inert>
       <aside class="sidebar">
         <a class="brand" href="#home" aria-label="Thuis dashboard"><span class="brand-mark"><svg><use href="#i-home"/></svg></span><span class="brand-name">thuis<span>.</span></span></a>
         <div class="side-label">OVERZICHT</div>

@@ -48,4 +48,4 @@ De Spotify-player verschijnt naast de apparaten en speelt de gekozen link in een
 
 ## Homedisplay
 
-Gebruik de knop met de schermhoeken rechtsboven om de kioskweergave en volledig scherm te openen. Op de telefoon blijven instellingen bereikbaar via het tandwiel rechtsboven.
+Bij het openen staat de grote klok met datum en huisstatus voorop. Raak het scherm aan om het dashboard te openen; na 10 seconden zonder activiteit keert de klok terug. In landscape veeg je naar rechts voor muziek en naar links voor apparaten. De knop met schermhoeken opent volledig scherm.

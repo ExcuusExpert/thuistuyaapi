@@ -147,6 +147,21 @@ button, input { font: inherit; } button { color: inherit; } svg { width: 20px; h
 
 .control-layout { display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); align-items: start; gap: 24px; padding-top: 28px; }
 .mobile-view-nav { display: none; }
+.clock-screen { position: fixed; inset: 0; z-index: 10; display: none; grid-template-rows: auto 1fr auto; padding: 30px 40px 22px; background-color: #142823; background-image: linear-gradient(90deg, transparent 47px, #ffffff08 48px), linear-gradient(transparent 47px, #ffffff08 48px); background-size: 48px 48px; color: #f4f6ef; }
+body.clock-mode .clock-screen { display: grid; }
+body.clock-mode .app-shell { opacity: 0; pointer-events: none; user-select: none; }
+.clock-screen-top, .clock-screen-bottom { display: flex; align-items: center; justify-content: space-between; }
+.clock-brand { color: white; font: 700 22px/1 'Space Grotesk', sans-serif; }
+.clock-brand span { color: var(--lime); }
+.clock-live { display: inline-flex; align-items: center; gap: 8px; color: #b6c3b9; font-size: 9px; font-weight: 700; letter-spacing: 1px; }
+.clock-live i { width: 7px; height: 7px; border-radius: 50%; background: #95c78f; box-shadow: 0 0 0 4px #95c78f20; }
+.clock-screen-center { display: grid; align-content: center; justify-items: center; text-align: center; }
+.clock-greeting { margin-bottom: 12px; color: #aab9ad; font-size: 10px; font-weight: 700; letter-spacing: 2px; }
+.clock-screen-center time { color: white; font: 500 150px/.88 'Space Grotesk', sans-serif; font-variant-numeric: tabular-nums; }
+.clock-date { margin-top: 18px; color: #d1dbd1; font-size: 17px; font-weight: 500; }
+.clock-screen-bottom { gap: 20px; padding-top: 13px; border-top: 1px solid #ffffff1a; color: #b9c6bc; font-size: 10px; }
+.clock-screen-bottom span:first-child { color: var(--lime); }
+.clock-screen-bottom span:last-child { text-align: right; }
 .control-layout .spotify-section, .control-layout .devices-section { min-width: 0; padding-top: 0; }
 .spotify-player { display: block; min-height: 0; padding: 7px; border-color: #314a42; background: var(--forest); }
 .spotify-player[hidden] { display: none; }
@@ -216,4 +231,17 @@ button, input { font: inherit; } button { color: inherit; } svg { width: 20px; h
 	.device-card { min-height: 78px; padding: 9px; }
 	.device-icon { width: 34px; height: 34px; }
 	.page-footer { display: none; }
+}
+
+@media (orientation: landscape) and (max-height: 600px) {
+	.clock-screen { padding: 17px 30px 14px; }
+	.clock-screen-center time { font-size: 112px; }
+	.clock-greeting { margin-bottom: 7px; font-size: 9px; }
+	.clock-date { margin-top: 9px; font-size: 14px; }
+	.clock-screen-bottom { padding-top: 8px; font-size: 9px; }
+}
+@media (max-width: 560px) and (orientation: portrait) {
+	.clock-screen { padding: 24px 20px 17px; }
+	.clock-screen-center time { font-size: 96px; }
+	.clock-date { margin-top: 13px; font-size: 15px; }
 }

@@ -55,7 +55,9 @@ function render() {
   $('#heading-count').textContent = String(visible.length).padStart(2, '0');
   $('#home-status').textContent = state.devices.length > 0 && online === state.devices.length ? 'Alles rustig' : 'Controleer apparaten';
   $('#home-status-summary').textContent = $('#home-status').textContent;
+  $('#screen-home-status').textContent = $('#home-status').textContent;
   $('#welcome-copy').textContent = active === 1 ? 'Er staat 1 apparaat aan.' : active > 1 ? `Er staan ${deviceCountLabel(active)} aan.` : 'Je huis is klaar voor vandaag.';
+  $('#screen-device-summary').textContent = $('#welcome-copy').textContent;
   $('#last-updated').textContent = `Bijgewerkt om ${new Intl.DateTimeFormat('nl-NL', { hour: '2-digit', minute: '2-digit' }).format(new Date())}`;
 }
 
@@ -126,10 +128,16 @@ async function setDeviceColor(deviceId, hex) {
 
 function setDate() {
   const now = new Date();
-  $('#clock').textContent = new Intl.DateTimeFormat('nl-NL', { hour: '2-digit', minute: '2-digit' }).format(now);
-  $('#today').textContent = new Intl.DateTimeFormat('nl-NL', { weekday: 'long', day: 'numeric', month: 'long' }).format(now);
+  const currentTime = new Intl.DateTimeFormat('nl-NL', { hour: '2-digit', minute: '2-digit' }).format(now);
+  const currentDate = new Intl.DateTimeFormat('nl-NL', { weekday: 'long', day: 'numeric', month: 'long' }).format(now);
+  $('#clock').textContent = currentTime;
+  $('#screen-time').textContent = currentTime;
+  $('#today').textContent = currentDate;
+  $('#screen-date').textContent = currentDate;
   const hour = now.getHours();
-  $('#greeting').textContent = hour < 12 ? 'GOEDEMORGEN' : hour < 18 ? 'GOEDEMIDDAG' : 'GOEDEAVOND';
+  const greeting = hour < 12 ? 'GOEDEMORGEN' : hour < 18 ? 'GOEDEMIDDAG' : 'GOEDEAVOND';
+  $('#greeting').textContent = greeting;
+  $('#screen-greeting').textContent = greeting;
 }
 
 $('#device-search').addEventListener('input', (event) => { state.query = event.target.value.trim(); render(); });
@@ -230,6 +238,36 @@ controlLayout.addEventListener('scroll', () => {
     selectMobileView(activePage.name);
   });
 });
+const appShell = $('.app-shell');
+let idleTimer;
+
+function showClock() {
+  window.clearTimeout(idleTimer);
+  if (dialog.open) dialog.close();
+  appShell.inert = true;
+  document.body.classList.add('clock-mode');
+}
+
+function showDashboard() {
+  document.body.classList.remove('clock-mode');
+  appShell.inert = false;
+  window.clearTimeout(idleTimer);
+  idleTimer = window.setTimeout(showClock, 10_000);
+}
+
+function handleActivity() {
+  if (document.body.classList.contains('clock-mode')) showDashboard();
+  else {
+    window.clearTimeout(idleTimer);
+    idleTimer = window.setTimeout(showClock, 10_000);
+  }
+}
+
+document.addEventListener('pointerdown', handleActivity, true);
+document.addEventListener('keydown', handleActivity);
+document.addEventListener('wheel', handleActivity, { passive: true });
+document.addEventListener('input', handleActivity);
+document.addEventListener('change', handleActivity);
 setDate();
 window.setInterval(setDate, 15_000);
 loadDevices();
