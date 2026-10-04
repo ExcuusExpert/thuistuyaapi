@@ -48,8 +48,8 @@ async function requestApi(path, options = {}) {
   const api = configuredApi();
   if (!api.url || !api.token) throw new Error('Stel eerst je Worker URL en dashboard-token in.');
   const endpoint = new URL(api.url);
-  endpoint.pathname = '/';
-  endpoint.searchParams.set('path', path);
+  endpoint.pathname = path;
+  endpoint.searchParams.delete('path');
   const response = await fetch(endpoint, { ...options, headers: { Authorization: `Bearer ${api.token}`, 'Content-Type': 'application/json', ...options.headers } });
   const payload = await response.json().catch(() => ({}));
   if (!response.ok || payload.success === false) throw new Error(payload.error || `Verbinding mislukt (${response.status}).`);

@@ -1,0 +1,8 @@
+name = "thuistuyaapi"
+main = "index.js"
+compatibility_date = "2026-10-04"
+
+[vars]
+TUYA_UID = "VUL_TUYA_USER_UID_IN"
+TUYA_REGION = "eu"
+ALLOWED_ORIGIN = "https://GEBRUIKERSNAAM.github.io"
