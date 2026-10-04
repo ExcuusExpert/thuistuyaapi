@@ -8,9 +8,9 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="styles.css?v=4">
     <script src="app.js" defer></script>
-    <script src="spotify.js" defer></script>
+    <script src="spotify-embed.js" defer></script>
   </head>
   <body>
     <svg class="icon-library" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
@@ -29,6 +29,8 @@
       <symbol id="i-pause" viewBox="0 0 24 24"><path d="M8 5v14M16 5v14"/></symbol>
       <symbol id="i-next" viewBox="0 0 24 24"><path d="m5 4 10 8-10 8V4Zm14 1v14"/></symbol>
       <symbol id="i-spotify" viewBox="0 0 24 24"><path d="M3 8c5-2 12-1.5 17 1m-15 3c4-1.5 9-1 13 .8m-11 3c3-1 6-.6 9 .6"/></symbol>
+      <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></symbol>
+      <symbol id="i-eye-off" viewBox="0 0 24 24"><path d="m3 3 18 18M10.6 10.6a2 2 0 0 0 2.8 2.8"/><path d="M9.9 5.2A10.6 10.6 0 0 1 12 5c6.4 0 10 7 10 7a15 15 0 0 1-3.1 3.8M6.2 6.3C3.5 8.1 2 12 2 12s3.6 7 10 7a10 10 0 0 0 3.4-.6"/></symbol>
     </svg>
     <div class="app-shell">
       <aside class="sidebar">
@@ -55,31 +57,30 @@
           <article class="summary-card summary-lime"><div class="summary-top"><span>INGESCHAKELD</span><span class="summary-icon"><svg><use href="#i-light"/></svg></span></div><div class="summary-value"><strong id="active-count">2</strong><span>actief</span></div><div class="summary-foot"><span class="tiny-dot dark-dot"></span><span>Op dit moment</span></div></article>
           <article class="summary-card summary-paper"><div class="summary-top"><span>HUISSTATUS</span><span class="status-tag"><span class="tiny-dot green-dot"></span><span id="home-status-summary">Alles rustig</span></span></div><div class="summary-status">Precies zoals<br>het hoort<span class="status-spark">✳</span></div></article>
         </section>
-        <section class="spotify-section" aria-label="Spotify-speler">
-          <div class="spotify-heading"><div><div class="eyebrow section-eyebrow">MUZIEK</div><h2>Nu aan het spelen</h2></div><span class="spotify-status" id="spotify-status"><span class="tiny-dot"></span>Niet verbonden</span></div>
-          <article class="spotify-player" id="spotify-player">
-            <div class="spotify-cover"><img id="spotify-cover" alt="" hidden><span id="spotify-cover-placeholder"><svg><use href="#i-spotify"/></svg></span></div>
-            <div class="spotify-content">
-              <div class="spotify-track"><strong id="spotify-track-title">Spotify niet gekoppeld</strong><span id="spotify-track-artist">Koppel Spotify via instellingen</span><small id="spotify-device-label">Je muziek blijft spelen op je Spotify-apparaat</small></div>
-              <div class="spotify-progress"><span id="spotify-position">0:00</span><input id="spotify-seek" type="range" min="0" max="1000" value="0" aria-label="Positie in nummer" disabled><span id="spotify-duration">0:00</span></div>
-              <div class="spotify-controls"><button type="button" id="spotify-previous" aria-label="Vorig nummer" title="Vorig nummer" disabled><svg><use href="#i-previous"/></svg></button><button type="button" id="spotify-play" class="spotify-play" aria-label="Afspelen" title="Afspelen" disabled><svg><use href="#i-play"/></svg></button><button type="button" id="spotify-next" aria-label="Volgend nummer" title="Volgend nummer" disabled><svg><use href="#i-next"/></svg></button><button type="button" class="spotify-connect" id="spotify-connect">Spotify koppelen</button></div>
-            </div>
-          </article>
-        </section>
-        <section class="devices-section">
-          <div class="section-heading"><div><div class="eyebrow section-eyebrow">BEDIENING</div><h2>Jouw apparaten <span class="heading-count" id="heading-count">04</span></h2></div>
+        <div class="control-layout">
+          <section class="spotify-section" aria-label="Spotify-speler">
+            <div class="spotify-heading"><div><div class="eyebrow section-eyebrow">MUZIEK</div><h2>Spotify</h2></div><span class="spotify-status" id="spotify-status"><span class="tiny-dot"></span>Niet ingesteld</span></div>
+            <article class="spotify-player" id="spotify-player">
+              <div class="spotify-empty" id="spotify-empty"><span class="spotify-empty-icon"><svg><use href="#i-spotify"/></svg></span><div><strong>Jouw muziek hier</strong><span>Plak een Spotify-link om te luisteren.</span></div><button class="spotify-connect" id="spotify-embed-edit" type="button">Link toevoegen</button></div>
+              <iframe id="spotify-embed" title="Spotify-speler" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy" allowfullscreen hidden></iframe>
+            </article>
+          </section>
+          <section class="devices-section">
+            <div class="section-heading"><div><div class="eyebrow section-eyebrow">BEDIENING</div><h2 id="devices-heading">Jouw apparaten <span class="heading-count" id="heading-count">04</span></h2></div>
             <div class="device-tools"><label class="search-box"><svg><use href="#i-search"/></svg><input id="device-search" type="search" placeholder="Zoek apparaat" aria-label="Zoek apparaat"></label><div class="filter-tabs" role="group" aria-label="Filter apparaten"><button class="filter-tab selected" data-filter="all">Alles</button><button class="filter-tab" data-filter="on">Aan</button></div></div>
           </div>
           <div class="device-grid" id="device-grid" aria-live="polite"></div>
-          <div class="empty-state" id="empty-state" hidden><span class="empty-icon"><svg><use href="#i-search"/></svg></span><strong>Geen apparaten gevonden</strong><span>Pas je zoekopdracht of filter aan.</span></div>
-        </section>
+            <div class="empty-state" id="empty-state" hidden><span class="empty-icon"><svg><use href="#i-search"/></svg></span><strong id="empty-title">Geen apparaten gevonden</strong><span id="empty-copy">Pas je zoekopdracht of filter aan.</span></div>
+            <div class="hidden-devices-toolbar" id="hidden-devices-toolbar" hidden><button class="text-button" id="toggle-hidden-devices" type="button"><svg><use id="hidden-devices-icon" href="#i-eye-off"/></svg><span id="hidden-devices-label">Verborgen apparaten</span><strong id="hidden-device-count">0</strong></button></div>
+          </section>
+        </div>
         <footer class="page-footer"><span><span class="footer-dot"></span> JE HUIS, JOUW RITME</span><span id="last-updated">Lokaal bijgewerkt</span></footer>
       </main>
     </div>
     <dialog class="settings-dialog" id="settings-dialog" aria-labelledby="settings-title">
       <form method="dialog" class="dialog-close-row"><button class="icon-button" aria-label="Sluiten"><svg><use href="#i-close"/></svg></button></form>
-      <div class="dialog-kicker">VERBINDINGEN</div><h2 id="settings-title">Jouw huis, <span>gekoppeld.</span></h2><p class="dialog-copy">Koppel Tuya voor je apparaten en Spotify voor muziekbediening.</p>
-      <form id="settings-form" class="settings-form"><div class="settings-group-title">TUYA</div><label for="api-url">Worker URL</label><input id="api-url" type="url" placeholder="https://jouw-worker.workers.dev" autocomplete="url"><label for="api-token">Dashboard-token</label><input id="api-token" type="password" placeholder="Token uit Cloudflare" autocomplete="off"><div class="settings-group-title spotify-settings-title">SPOTIFY</div><label for="spotify-client-id">Spotify Client ID</label><input id="spotify-client-id" type="text" placeholder="Client ID uit Spotify Developer Dashboard" autocomplete="off"><small class="redirect-help">Voeg deze redirect-URL toe in je Spotify-app: <code id="spotify-redirect-uri"></code></small><div class="settings-error" id="settings-error" role="alert" hidden></div><div class="dialog-actions"><button type="button" class="text-button" id="disconnect-button">Tuya wissen</button><button type="button" class="text-button" id="spotify-disconnect">Spotify wissen</button><button type="submit" class="primary-button">Opslaan <span>↗</span></button></div></form>
+      <div class="dialog-kicker">VERBINDINGEN</div><h2 id="settings-title">Jouw huis, <span>gekoppeld.</span></h2><p class="dialog-copy">Vul je Tuya-Worker in en plak een Spotify-link voor de speler.</p>
+      <form id="settings-form" class="settings-form"><div class="settings-group-title">TUYA</div><label for="api-url">Worker URL</label><input id="api-url" type="url" placeholder="https://jouw-worker.workers.dev" autocomplete="url"><label for="api-token">Dashboard-token</label><input id="api-token" type="password" placeholder="Token uit Cloudflare" autocomplete="off"><div class="settings-group-title spotify-settings-title">SPOTIFY</div><label for="spotify-link">Link naar nummer, album of playlist</label><input id="spotify-link" type="url" placeholder="https://open.spotify.com/playlist/..." autocomplete="url"><small class="redirect-help">Gebruik Delen → Link kopiëren in Spotify. Geen Premium, Client ID of Cloudflare nodig.</small><div class="settings-error" id="settings-error" role="alert" hidden></div><div class="dialog-actions"><button type="button" class="text-button" id="disconnect-button">Tuya wissen</button><button type="button" class="text-button" id="spotify-disconnect">Spotify-link wissen</button><button type="submit" class="primary-button">Opslaan <span>↗</span></button></div></form>
     </dialog>
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
   </body>

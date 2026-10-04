@@ -1,6 +1,6 @@
 # thuis.
 
-Een home-dashboard voor GitHub Pages met Tuya-bediening via Cloudflare Workers en Spotify Connect-bediening. Zonder ingestelde Tuya-koppeling werkt de interface in demomodus.
+Een homedisplay voor GitHub Pages met Tuya-bediening via Cloudflare Workers en een Spotify-embed. Zonder ingestelde Tuya-koppeling werkt de interface in demomodus.
 
 ## GitHub Pages
 
@@ -37,18 +37,15 @@ De dashboardbestanden bevatten geen Tuya-sleutels. De Worker onder `worker/` ond
 
 6. Open **Instellingen** in het dashboard en vul de Worker-URL (bijvoorbeeld `https://thuistuyaapi.<jouw-subdomein>.workers.dev`) en dezelfde `DASHBOARD_TOKEN` in. Die token wordt alleen lokaal in deze browser opgeslagen.
 
-De proxy ondersteunt het ophalen van apparaten en het schakelen van Tuya-apparaten met een `switch`, `switch_1` of `switch_led` datapunt. Voor lampen die `colour_data` of `colour_data_v2` rapporteren verschijnt ook een kleurkiezer. Controleer bij Tuya of je cloudproject de juiste API-regio en accountkoppeling gebruikt.
+De proxy haalt ook per apparaat ontbrekende functies en status op. Lampen met `colour_data` of `colour_data_v2` krijgen een kleurkiezer. Niet-beschikbare lampen worden als uit getoond. Verberg apparaten met het oog-icoon; via **Verborgen apparaten** kun je ze terugzetten. Na wijzigingen in `worker/` deploy je opnieuw met `npx wrangler deploy` vanuit de map `worker`.
 
-## Spotify koppelen
+## Spotify gebruiken
 
-1. Maak een app aan in het [Spotify Developer Dashboard](https://developer.spotify.com/dashboard).
-2. Open in het homedashboard **Instellingen** en kopieer de redirect-URL onder het Spotify Client ID-veld.
-3. Voeg die volledige URL als **Redirect URI** toe bij de instellingen van je Spotify-app. De URL moet exact overeenkomen, inclusief eventueel het repository-pad en de afsluitende slash.
-4. Kopieer de **Client ID** van Spotify naar dezelfde instellingen in het homedashboard en sla op.
-5. Kies **Spotify koppelen** en geef toestemming. De login gebruikt PKCE; een Client Secret is niet nodig en moet niet in het dashboard worden ingevuld.
+1. Open in Spotify een nummer, album of playlist en kies **Delen → Link kopiëren**.
+2. Open **Instellingen** op het dashboard, plak de link en sla op.
 
-De speler bedient Spotify Connect: start Spotify eerst op de speaker, telefoon of ander apparaat waar je muziek wilt horen. Afspelen, pauzeren, nummers overslaan en zoeken vereisen Spotify Premium en een actief afspeelapparaat. Staat de Spotify-app in Development Mode, voeg dan je Spotify-account toe aan de toegestane gebruikers. De Client ID en OAuth-tokens worden alleen lokaal in die browser opgeslagen.
+De Spotify-player verschijnt naast de apparaten en speelt de gekozen link in een frame af. Hiervoor zijn geen Premium-account, Client ID of Cloudflare nodig. De embed toont niet wat al op een ander apparaat speelt.
 
 ## Homedisplay
 
-Gebruik de knop met de schermhoeken rechtsboven om de kioskweergave en volledig scherm te openen. Op de telefoon blijven instellingen bereikbaar via het tandwiel rechtsboven. De klok en speler verversen automatisch.
+Gebruik de knop met de schermhoeken rechtsboven om de kioskweergave en volledig scherm te openen. Op de telefoon blijven instellingen bereikbaar via het tandwiel rechtsboven.

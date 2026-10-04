@@ -4,8 +4,8 @@ const DEMO_DEVICES = [
   { id: 'demo-coffee', name: 'Koffiehoek', room: 'Keuken', category: 'plug', online: true, on: true, switchCode: 'switch_1' },
   { id: 'demo-hall', name: 'Slimme stekker', room: 'Hal', category: 'plug', online: true, on: false, switchCode: 'switch_1' },
 ];
-const STORAGE_KEYS = { url: 'thuis-api-url', token: 'thuis-api-token' };
-const state = { devices: DEMO_DEVICES.map((device) => ({ ...device })), filter: 'all', category: 'all', query: '', connected: false, busy: new Set() };
+const STORAGE_KEYS = { url: 'thuis-api-url', token: 'thuis-api-token', hidden: 'thuis-hidden-devices' };
+const state = { devices: DEMO_DEVICES.map((device) => ({ ...device })), filter: 'all', category: 'all', query: '', connected: false, busy: new Set(), hidden: new Set(readHiddenDevices()), showHidden: false };
 const $ = (selector) => document.querySelector(selector);
 const grid = $('#device-grid');
 const dialog = $('#settings-dialog');
@@ -13,32 +13,46 @@ const iconFor = (device) => device.category === 'plug' ? '#i-plug' : device.cate
 let toastTimer;
 
 function configuredApi() { return { url: localStorage.getItem(STORAGE_KEYS.url) || '', token: localStorage.getItem(STORAGE_KEYS.token) || '' }; }
+function readHiddenDevices() { try { const ids = JSON.parse(localStorage.getItem(STORAGE_KEYS.hidden) || '[]'); return Array.isArray(ids) ? ids : []; } catch { return []; } }
 function showToast(message) { const toast = $('#toast'); toast.textContent = message; toast.classList.add('visible'); window.clearTimeout(toastTimer); toastTimer = window.setTimeout(() => toast.classList.remove('visible'), 2800); }
 function setConnection(connected, detail) { state.connected = connected; $('#connection-dot').classList.toggle('connected', connected); $('#connection-label').textContent = connected ? 'Tuya verbonden' : 'Demomodus'; $('#connection-detail').textContent = detail; $('.connection-wifi').style.color = connected ? '#7bd39a' : ''; }
 function categoryLabel(category) { if (category === 'plug') return 'Stekker'; if (category === 'sensor') return 'Sensor'; if (category === 'light') return 'Lamp'; return category || 'Apparaat'; }
 function deviceCountLabel(count) { return `${count} ${count === 1 ? 'apparaat' : 'apparaten'}`; }
 
 function render() {
+  const hiddenCount = state.devices.filter((device) => state.hidden.has(device.id)).length;
+  if (state.showHidden && hiddenCount === 0) state.showHidden = false;
   const visible = state.devices.filter((device) => {
     const matchesQuery = `${device.name} ${device.room} ${device.category}`.toLowerCase().includes(state.query.toLowerCase());
+    if (state.showHidden) return state.hidden.has(device.id) && matchesQuery;
+    if (state.hidden.has(device.id)) return false;
     return matchesQuery && (state.filter !== 'on' || device.on) && (state.category === 'all' || device.category === state.category);
   });
   grid.innerHTML = visible.map((device, index) => {
-    const statusText = device.online === false ? 'Niet bereikbaar' : device.on ? 'Ingeschakeld' : 'Uitgeschakeld';
+    const isOn = device.online !== false && Boolean(device.on);
+    const statusText = device.online === false ? 'Niet bereikbaar' : isOn ? 'Ingeschakeld' : 'Uitgeschakeld';
     const controllable = Boolean(device.switchCode);
     const disabled = device.online === false || state.busy.has(device.id);
     const colorControl = device.colorCode ? `<label class="color-control" style="--device-color:${escapeHtml(device.color || '#ffffff')}" title="Kleur aanpassen"><input type="color" class="device-color" data-color-device="${escapeHtml(device.id)}" value="${escapeHtml(device.color || '#ffffff')}" aria-label="Kleur van ${escapeHtml(device.name)}" ${disabled ? 'disabled' : ''}><span></span></label>` : '';
-    return `<article class="device-card${device.on ? ' is-on' : ''}" style="animation-delay:${index * 45}ms"><span class="device-icon ${device.category || 'light'}"><svg><use href="${iconFor(device)}"/></svg></span><div class="device-info"><strong>${escapeHtml(device.name)}</strong><span>${escapeHtml(device.room || categoryLabel(device.category))}</span><small class="device-state"><span class="tiny-dot"></span>${statusText}</small></div>${controllable ? `<div class="device-control"><small>${device.on ? 'Aan' : 'Uit'}</small><button class="toggle" type="button" role="switch" aria-checked="${Boolean(device.on)}" aria-label="${escapeHtml(device.name)} ${device.on ? 'uitschakelen' : 'inschakelen'}" data-device-id="${escapeHtml(device.id)}" ${disabled ? 'disabled' : ''}></button>${colorControl}</div>` : '<span class="device-control"><small>Alleen status</small></span>'}</article>`;
+    const visibilityControl = `<button class="visibility-button" type="button" data-hide-device-id="${escapeHtml(device.id)}" aria-label="${state.showHidden ? 'Terugzetten' : 'Verbergen'}: ${escapeHtml(device.name)}" title="${state.showHidden ? 'Terugzetten' : 'Verbergen'}"><svg><use href="${state.showHidden ? '#i-eye' : '#i-eye-off'}"/></svg></button>`;
+    return `<article class="device-card${isOn ? ' is-on' : ''}" style="animation-delay:${index * 45}ms"><span class="device-icon ${device.category || 'light'}"><svg><use href="${iconFor(device)}"/></svg></span><div class="device-info"><strong>${escapeHtml(device.name)}</strong><span>${escapeHtml(device.room || categoryLabel(device.category))}</span><small class="device-state"><span class="tiny-dot"></span>${statusText}</small></div>${controllable ? `<div class="device-control"><small>${isOn ? 'Aan' : 'Uit'}</small><button class="toggle" type="button" role="switch" aria-checked="${isOn}" aria-label="${escapeHtml(device.name)} ${isOn ? 'uitschakelen' : 'inschakelen'}" data-device-id="${escapeHtml(device.id)}" ${disabled ? 'disabled' : ''}></button>${colorControl}${visibilityControl}</div>` : `<div class="device-control"><small>Alleen status</small>${visibilityControl}</div>`}</article>`;
   }).join('');
   $('#empty-state').hidden = visible.length > 0;
   grid.hidden = visible.length === 0;
+  $('#empty-title').textContent = state.showHidden ? 'Geen verborgen apparaten' : 'Geen apparaten gevonden';
+  $('#empty-copy').textContent = state.showHidden ? 'Er zijn geen verborgen apparaten meer.' : 'Pas je zoekopdracht of filter aan.';
+  $('#devices-heading').firstChild.textContent = state.showHidden ? 'Verborgen apparaten ' : 'Jouw apparaten ';
+  $('#hidden-devices-toolbar').hidden = hiddenCount === 0;
+  $('#hidden-devices-label').textContent = state.showHidden ? 'Terug naar alle apparaten' : 'Verborgen apparaten';
+  $('#hidden-device-count').textContent = state.showHidden ? '' : hiddenCount;
+  $('#hidden-devices-icon').setAttribute('href', state.showHidden ? '#i-eye' : '#i-eye-off');
   const online = state.devices.filter((device) => device.online !== false).length;
-  const active = state.devices.filter((device) => device.on).length;
+  const active = state.devices.filter((device) => device.online !== false && device.on).length;
   $('#total-count').textContent = state.devices.length;
   $('#nav-device-count').textContent = state.devices.length;
   $('#online-count').textContent = `${deviceCountLabel(online)} online`;
   $('#active-count').textContent = active;
-  $('#heading-count').textContent = String(state.devices.length).padStart(2, '0');
+  $('#heading-count').textContent = String(visible.length).padStart(2, '0');
   $('#home-status').textContent = state.devices.length > 0 && online === state.devices.length ? 'Alles rustig' : 'Controleer apparaten';
   $('#home-status-summary').textContent = $('#home-status').textContent;
   $('#welcome-copy').textContent = active === 1 ? 'Er staat 1 apparaat aan.' : active > 1 ? `Er staan ${deviceCountLabel(active)} aan.` : 'Je huis is klaar voor vandaag.';
@@ -122,13 +136,23 @@ $('#device-search').addEventListener('input', (event) => { state.query = event.t
 document.querySelectorAll('.filter-tab').forEach((button) => button.addEventListener('click', () => { state.filter = button.dataset.filter; document.querySelectorAll('.filter-tab').forEach((tab) => tab.classList.toggle('selected', tab === button)); render(); }));
 document.querySelectorAll('.side-nav [data-filter]').forEach((button) => button.addEventListener('click', () => { state.category = button.dataset.filter; document.querySelectorAll('.side-nav .nav-item').forEach((item) => item.classList.toggle('active', item === button)); document.querySelectorAll('.filter-tab').forEach((tab) => tab.classList.toggle('selected', tab.dataset.filter === 'all')); state.filter = 'all'; render(); }));
 grid.addEventListener('click', (event) => { const toggle = event.target.closest('button[data-device-id]'); if (toggle) toggleDevice(toggle.dataset.deviceId); });
+grid.addEventListener('click', (event) => {
+  const button = event.target.closest('[data-hide-device-id]');
+  if (!button) return;
+  const deviceId = button.dataset.hideDeviceId;
+  if (state.hidden.has(deviceId)) state.hidden.delete(deviceId);
+  else state.hidden.add(deviceId);
+  localStorage.setItem(STORAGE_KEYS.hidden, JSON.stringify([...state.hidden]));
+  render();
+  showToast(state.hidden.has(deviceId) ? 'Apparaat verborgen.' : 'Apparaat teruggezet.');
+});
+$('#toggle-hidden-devices').addEventListener('click', () => { state.showHidden = !state.showHidden; render(); });
 grid.addEventListener('change', (event) => { const picker = event.target.closest('[data-color-device]'); if (picker) setDeviceColor(picker.dataset.colorDevice, picker.value); });
 function openSettings() {
   const api = configuredApi();
   $('#api-url').value = api.url;
   $('#api-token').value = api.token;
-  $('#spotify-client-id').value = localStorage.getItem('thuis-spotify-client-id') || '';
-  $('#spotify-redirect-uri').textContent = `${window.location.origin}${window.location.pathname}`;
+  $('#spotify-link').value = localStorage.getItem('thuis-spotify-embed-link') || '';
   $('#settings-error').hidden = true;
   dialog.showModal();
 }
@@ -139,20 +163,21 @@ $('#settings-form').addEventListener('submit', async (event) => {
   event.preventDefault();
   const url = $('#api-url').value.trim().replace(/\/$/, '');
   const token = $('#api-token').value.trim();
-  const spotifyClientId = $('#spotify-client-id').value.trim();
+  const spotifyLink = $('#spotify-link').value.trim();
   const errorBox = $('#settings-error');
   if (Boolean(url) !== Boolean(token)) { errorBox.textContent = 'Vul voor Tuya zowel de Worker URL als het dashboard-token in, of laat beide leeg.'; errorBox.hidden = false; return; }
+  if (spotifyLink && !window.spotifyEmbedIntegration?.parseLink(spotifyLink)) { errorBox.textContent = 'Vul een geldige Spotify-link naar een nummer, album of playlist in.'; errorBox.hidden = false; return; }
   if (url) { localStorage.setItem(STORAGE_KEYS.url, url); localStorage.setItem(STORAGE_KEYS.token, token); }
   else { localStorage.removeItem(STORAGE_KEYS.url); localStorage.removeItem(STORAGE_KEYS.token); }
-  if (spotifyClientId) localStorage.setItem('thuis-spotify-client-id', spotifyClientId);
-  else localStorage.removeItem('thuis-spotify-client-id');
+  if (spotifyLink) localStorage.setItem('thuis-spotify-embed-link', spotifyLink);
+  else localStorage.removeItem('thuis-spotify-embed-link');
   errorBox.hidden = true;
   await loadDevices();
-  window.spotifyIntegration?.refresh(true);
+  window.spotifyEmbedIntegration?.refresh();
   dialog.close();
 });
 $('#disconnect-button').addEventListener('click', () => { localStorage.removeItem(STORAGE_KEYS.url); localStorage.removeItem(STORAGE_KEYS.token); dialog.close(); loadDevices(); showToast('Tuya-verbinding gewist.'); });
-$('#spotify-disconnect').addEventListener('click', () => { $('#spotify-client-id').value = ''; localStorage.removeItem('thuis-spotify-client-id'); window.spotifyIntegration?.disconnect(); showToast('Spotify-koppeling gewist.'); });
+$('#spotify-disconnect').addEventListener('click', () => { $('#spotify-link').value = ''; window.spotifyEmbedIntegration?.clear(); showToast('Spotify-link gewist.'); });
 $('#kiosk-button').addEventListener('click', async () => {
   document.body.classList.toggle('kiosk-mode');
   if (!document.fullscreenElement) {
